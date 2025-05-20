@@ -10,7 +10,10 @@ class OrmConfig(BaseConfig):
 
 
 def sqlalchemy_to_pydantic(
-    db_model: Type, *, config: Type = OrmConfig, exclude: Container[str] = []
+        db_model: Type, *,
+        config: Type = OrmConfig,
+        exclude: Union[Container[str], None] = None,
+        include: Union[Container[str], None] = None
 ) -> Type[BaseModel]:
     mapper = inspect(db_model)
     fields = {}
@@ -18,7 +21,9 @@ def sqlalchemy_to_pydantic(
         if isinstance(attr, ColumnProperty):
             if attr.columns:
                 name = attr.key
-                if name in exclude:
+                if exclude is not None and name in exclude:
+                    continue
+                if include is not None and name not in include:
                     continue
                 column = attr.columns[0]
                 python_type: Optional[type] = None
